@@ -1,6 +1,19 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
 export function Nav() {
+  const router = useRouter();
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
+
   return (
     <nav
       style={{
@@ -39,6 +52,15 @@ export function Nav() {
         >
           Settings
         </Link>
+        <div style={{ marginLeft: "auto" }}>
+          <button
+            className="btn-ghost"
+            onClick={handleLogout}
+            style={{ fontSize: 13 }}
+          >
+            ログアウト
+          </button>
+        </div>
       </div>
     </nav>
   );

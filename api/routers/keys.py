@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from services.auth import generate_api_key, verify_api_key
+from services.auth import generate_api_key, verify_supabase_jwt
 from services.database import get_supabase
 
 router = APIRouter()
@@ -24,9 +24,12 @@ class ApiKeyInfo(BaseModel):
 
 
 @router.post("/keys", response_model=CreateKeyResponse)
-async def create_key(body: CreateKeyRequest):
+async def create_key(
+    body: CreateKeyRequest,
+    user: dict = Depends(verify_supabase_jwt),
+):
     """
-    新しいAPIキーを発行する。
+    新しいAPIキーを発行する（ログインユーザーのみ）。
     平文キーはこのレスポンスでのみ返却し、DB には SHA-256 ハッシュのみ保存。
     """
     plain, key_hash = generate_api_key()
@@ -34,7 +37,7 @@ async def create_key(body: CreateKeyRequest):
 
     result = (
         supabase.table("api_keys")
-        .insert({"key_hash": key_hash, "name": body.name})
+        .insert({"key_hash": key_hash, "name": body.name, "user_id": user["id"]})
         .execute()
     )
     row = result.data[0]
@@ -42,23 +45,34 @@ async def create_key(body: CreateKeyRequest):
 
 
 @router.get("/keys", response_model=list[ApiKeyInfo])
-async def list_keys(api_key_info: dict = Depends(verify_api_key)):
-    """自分のAPIキー一覧を返す（key_hashは含まない）。"""
+async def list_keys(user: dict = Depends(verify_supabase_jwt)):
+    """ログインユーザーのAPIキー一覧を返す（key_hashは含まない）。"""
     supabase = get_supabase()
     result = (
         supabase.table("api_keys")
         .select("id, name, created_at")
-        .eq("id", api_key_info["id"])
+        .eq("user_id", user["id"])
+        .order("created_at", desc=True)
         .execute()
     )
     return [ApiKeyInfo(**r) for r in (result.data or [])]
 
 
 @router.delete("/keys/{key_id}")
-async def delete_key(key_id: str, api_key_info: dict = Depends(verify_api_key)):
-    """指定IDのAPIキーを削除する。自分のキーのみ削除可能。"""
-    if key_id != api_key_info["id"]:
-        raise HTTPException(status_code=403, detail="Forbidden")
+async def delete_key(key_id: str, user: dict = Depends(verify_supabase_jwt)):
+    """指定IDのAPIキーを削除する（自分のキーのみ）。"""
     supabase = get_supabase()
+
+    existing = (
+        supabase.table("api_keys")
+        .select("id")
+        .eq("id", key_id)
+        .eq("user_id", user["id"])
+        .maybe_single()
+        .execute()
+    )
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="API key not found")
+
     supabase.table("api_keys").delete().eq("id", key_id).execute()
     return {"status": "deleted"}

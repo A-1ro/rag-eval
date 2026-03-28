@@ -1,7 +1,11 @@
 import hashlib
 import secrets
 from fastapi import Header, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends
 from services.database import get_supabase
+
+_bearer = HTTPBearer()
 
 
 def hash_key(raw_key: str) -> str:
@@ -20,8 +24,7 @@ def generate_api_key() -> tuple[str, str]:
 
 async def verify_api_key(x_api_key: str = Header(...)) -> dict:
     """
-    X-API-Keyヘッダーを SHA-256 ハッシュ化して api_keys テーブルと照合。
-    一致しなければ 401 を返す。
+    SDK向け: X-API-Key ヘッダーを SHA-256 ハッシュ化して api_keys テーブルと照合。
     """
     key_hash = hash_key(x_api_key)
     supabase = get_supabase()
@@ -36,3 +39,22 @@ async def verify_api_key(x_api_key: str = Header(...)) -> dict:
     if not result.data:
         raise HTTPException(status_code=401, detail="Invalid API key")
     return result.data
+
+
+async def verify_supabase_jwt(
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer),
+) -> dict:
+    """
+    ダッシュボード向け: Authorization: Bearer <supabase_jwt> を検証し、
+    ユーザー情報を返す。
+    """
+    supabase = get_supabase()
+    try:
+        result = supabase.auth.get_user(credentials.credentials)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    if not result or not result.user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    return {"id": result.user.id, "email": result.user.email}
