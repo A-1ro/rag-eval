@@ -1,6 +1,7 @@
 import os
 import hashlib
 import secrets
+import httpx
 from fastapi import Header, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from services.database import get_supabase
@@ -48,13 +49,21 @@ async def verify_supabase_jwt(
     ダッシュボード向け: Authorization: Bearer <supabase_jwt> を
     PyJWT で直接検証しユーザー情報を返す。
     """
-    supabase = get_supabase()
-    try:
-        result = supabase.auth.get_user(credentials.credentials)
-        if not result or not result.user:
-            raise HTTPException(status_code=401, detail="User not found")
-        return {"id": result.user.id, "email": result.user.email}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Auth error: {e}")
+    supabase_url = os.environ.get("SUPABASE_URL", "").strip()
+    supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{supabase_url}/auth/v1/user",
+            headers={
+                "Authorization": f"Bearer {credentials.credentials}",
+                "apikey": supabase_key,
+            },
+            timeout=5.0,
+        )
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    user = resp.json()
+    return {"id": user["id"], "email": user.get("email")}
