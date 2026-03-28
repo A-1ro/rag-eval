@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "rag-eval"
+name = "rageval-sdk"
 version = "0.1.0"
 description = "RAG evaluation SDK — RAGの回答品質を3行で計測"
 readme = "README.md"

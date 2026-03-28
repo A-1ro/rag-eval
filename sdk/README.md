@@ -5,7 +5,7 @@ RAGアプリの回答品質を3行で計測できるSDKです。
 ## インストール
 
 ```bash
-pip install rag-eval
+pip install rageval-sdk
 ```
 
 ## 使い方

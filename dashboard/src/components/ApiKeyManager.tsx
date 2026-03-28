@@ -181,7 +181,7 @@ export function ApiKeyManager() {
             overflowX: "auto",
           }}
         >
-          {`pip install rag-eval
+          {`pip install rageval-sdk
 
 from rag_eval import track
 
