@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models.schemas import FeedbackRequest, FeedbackResponse
-from services.auth import verify_api_key
+from services.auth import verify_supabase_jwt
 from services.database import get_supabase
 
 router = APIRouter()
@@ -9,16 +9,16 @@ router = APIRouter()
 @router.post("/feedback", response_model=FeedbackResponse)
 async def feedback(
     body: FeedbackRequest,
-    api_key_info: dict = Depends(verify_api_key),
+    user: dict = Depends(verify_supabase_jwt),
 ):
     supabase = get_supabase()
 
-    # evaluation_id が api_key_info に紐づいていることを確認
+    # evaluation がログインユーザーのキーに紐づいているか確認
     eval_check = (
         supabase.table("evaluations")
-        .select("id")
+        .select("id, api_keys!inner(user_id)")
         .eq("id", str(body.evaluation_id))
-        .eq("api_key_id", api_key_info["id"])
+        .eq("api_keys.user_id", user["id"])
         .maybe_single()
         .execute()
     )

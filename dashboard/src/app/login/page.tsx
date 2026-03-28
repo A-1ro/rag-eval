@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -19,19 +20,67 @@ export default function LoginPage() {
 
     const supabase = createClient();
 
-    const { error } =
-      mode === "login"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
+    if (mode === "login") {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+      router.push("/");
+      router.refresh();
+    } else {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+      // セッションがnull = メール確認待ち
+      if (!data.session) {
+        setNeedsConfirmation(true);
+        setLoading(false);
+        return;
+      }
+      router.push("/");
+      router.refresh();
     }
+  }
 
-    router.push("/");
-    router.refresh();
+  if (needsConfirmation) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--bg)",
+        }}
+      >
+        <div className="card" style={{ width: 380, textAlign: "center" }}>
+          <p style={{ fontSize: 32, marginBottom: 16 }}>📧</p>
+          <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+            確認メールを送信しました
+          </h2>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7 }}>
+            <strong>{email}</strong> に確認メールを送りました。
+            メール内のリンクをクリックしてアカウントを有効化してください。
+          </p>
+          <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 16 }}>
+            メールが届かない場合はSupabaseダッシュボードで
+            「Confirm email」をOFFにするか、スパムフォルダを確認してください。
+          </p>
+          <button
+            className="btn-ghost"
+            onClick={() => { setNeedsConfirmation(false); setMode("login"); }}
+            style={{ marginTop: 20 }}
+          >
+            ログイン画面に戻る
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

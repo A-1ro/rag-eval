@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import { EnvSelector } from "./EnvSelector";
 
 export function Nav() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export function Nav() {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 32,
+          gap: 24,
           height: 56,
         }}
       >
@@ -40,24 +41,16 @@ export function Nav() {
         <Link href="/" style={{ fontSize: 14, color: "var(--text-muted)" }}>
           Overview
         </Link>
-        <Link
-          href="/evaluations"
-          style={{ fontSize: 14, color: "var(--text-muted)" }}
-        >
+        <Link href="/evaluations" style={{ fontSize: 14, color: "var(--text-muted)" }}>
           Evaluations
         </Link>
-        <Link
-          href="/settings"
-          style={{ fontSize: 14, color: "var(--text-muted)" }}
-        >
+        <Link href="/settings" style={{ fontSize: 14, color: "var(--text-muted)" }}>
           Settings
         </Link>
-        <div style={{ marginLeft: "auto" }}>
-          <button
-            className="btn-ghost"
-            onClick={handleLogout}
-            style={{ fontSize: 13 }}
-          >
+
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16 }}>
+          <EnvSelector />
+          <button className="btn-ghost" onClick={handleLogout} style={{ fontSize: 13 }}>
             ログアウト
           </button>
         </div>

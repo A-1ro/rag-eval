@@ -4,15 +4,6 @@ import { createClient } from "./supabase";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "https://rag-eval-api.vercel.app";
 
-/** SDK向けエンドポイント用（X-API-Key） */
-function sdkHeaders(apiKey: string) {
-  return {
-    "Content-Type": "application/json",
-    "X-API-Key": apiKey,
-  };
-}
-
-/** ダッシュボード向けエンドポイント用（Supabase JWT） */
 async function authHeaders(): Promise<Record<string, string>> {
   const supabase = createClient();
   const {
@@ -28,41 +19,38 @@ async function authHeaders(): Promise<Record<string, string>> {
 }
 
 export async function fetchStats(
-  apiKey: string,
+  keyId: string,
   offset = 0,
   limit = 20
 ): Promise<Stats> {
   const params = new URLSearchParams({
+    key_id: keyId,
     offset: String(offset),
     limit: String(limit),
   });
   const res = await fetch(`${API_BASE}/api/stats?${params}`, {
-    headers: sdkHeaders(apiKey),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`Failed to fetch stats: ${res.status}`);
   return res.json();
 }
 
-export async function fetchEvaluation(
-  apiKey: string,
-  id: string
-): Promise<Evaluation> {
+export async function fetchEvaluation(id: string): Promise<Evaluation> {
   const res = await fetch(`${API_BASE}/api/evaluations/${id}`, {
-    headers: sdkHeaders(apiKey),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error(`Failed to fetch evaluation: ${res.status}`);
   return res.json();
 }
 
 export async function submitFeedback(
-  apiKey: string,
   evaluationId: string,
   rating: 1 | -1,
   comment?: string
 ): Promise<void> {
   const res = await fetch(`${API_BASE}/api/feedback`, {
     method: "POST",
-    headers: sdkHeaders(apiKey),
+    headers: await authHeaders(),
     body: JSON.stringify({
       evaluation_id: evaluationId,
       rating,

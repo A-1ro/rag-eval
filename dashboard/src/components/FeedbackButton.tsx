@@ -5,10 +5,9 @@ import { submitFeedback } from "@/lib/api";
 
 type Props = {
   evaluationId: string;
-  apiKey: string;
 };
 
-export function FeedbackButton({ evaluationId, apiKey }: Props) {
+export function FeedbackButton({ evaluationId }: Props) {
   const [sent, setSent] = useState<1 | -1 | null>(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +23,6 @@ export function FeedbackButton({ evaluationId, apiKey }: Props) {
     setLoading(true);
     try {
       await submitFeedback(
-        apiKey,
         evaluationId,
         pendingRating,
         comment || undefined

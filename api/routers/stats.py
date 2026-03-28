@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from models.schemas import StatsResponse, EvaluationSummary
-from services.auth import verify_api_key
+from services.auth import verify_supabase_jwt
 from services.database import get_supabase
 
 router = APIRouter()
@@ -8,18 +8,30 @@ router = APIRouter()
 
 @router.get("/stats", response_model=StatsResponse)
 async def stats(
+    key_id: str = Query(..., description="表示するAPIキーのID"),
     offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    api_key_info: dict = Depends(verify_api_key),
+    user: dict = Depends(verify_supabase_jwt),
 ):
     supabase = get_supabase()
-    api_key_id = api_key_info["id"]
+
+    # key_id がログインユーザーのものか確認
+    key_check = (
+        supabase.table("api_keys")
+        .select("id")
+        .eq("id", key_id)
+        .eq("user_id", user["id"])
+        .maybe_single()
+        .execute()
+    )
+    if not key_check.data:
+        raise HTTPException(status_code=404, detail="API key not found")
 
     # 件数
     count_result = (
         supabase.table("evaluations")
         .select("id", count="exact")
-        .eq("api_key_id", api_key_id)
+        .eq("api_key_id", key_id)
         .execute()
     )
     total = count_result.count or 0
@@ -32,7 +44,7 @@ async def stats(
             "auto_score_faithfulness,"
             "auto_score_completeness"
         )
-        .eq("api_key_id", api_key_id)
+        .eq("api_key_id", key_id)
         .not_.is_("auto_score_relevance", "null")
         .execute()
     )
@@ -44,11 +56,11 @@ async def stats(
         avg_faithfulness = sum(r["auto_score_faithfulness"] for r in rows) / len(rows)
         avg_completeness = sum(r["auto_score_completeness"] for r in rows) / len(rows)
 
-    # フィードバック率（良い / 全体）
+    # フィードバック率
     fb_result = (
         supabase.table("feedbacks")
         .select("rating, evaluations!inner(api_key_id)")
-        .eq("evaluations.api_key_id", api_key_id)
+        .eq("evaluations.api_key_id", key_id)
         .execute()
     )
     feedbacks = fb_result.data or []
@@ -65,7 +77,7 @@ async def stats(
             "auto_score_relevance, auto_score_faithfulness, auto_score_completeness,"
             "created_at"
         )
-        .eq("api_key_id", api_key_id)
+        .eq("api_key_id", key_id)
         .order("created_at", desc=True)
         .range(offset, offset + limit - 1)
         .execute()
