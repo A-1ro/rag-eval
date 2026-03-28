@@ -50,11 +50,14 @@ async def verify_supabase_jwt(
     PyJWT で直接検証しユーザー情報を返す。
     """
     secret = os.environ.get("SUPABASE_JWT_SECRET", "")
+    token = credentials.credentials
     try:
+        header = jwt.get_unverified_header(token)
+        alg = header.get("alg", "HS256")
         payload = jwt.decode(
-            credentials.credentials,
+            token,
             secret,
-            algorithms=["HS256"],
+            algorithms=[alg],
             options={"verify_aud": False},
         )
         return {"id": payload["sub"], "email": payload.get("email")}
