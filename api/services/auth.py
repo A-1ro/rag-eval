@@ -1,7 +1,6 @@
 import os
 import hashlib
 import secrets
-import jwt
 from fastapi import Header, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from services.database import get_supabase
@@ -49,19 +48,13 @@ async def verify_supabase_jwt(
     ダッシュボード向け: Authorization: Bearer <supabase_jwt> を
     PyJWT で直接検証しユーザー情報を返す。
     """
-    secret = os.environ.get("SUPABASE_JWT_SECRET", "")
-    token = credentials.credentials
+    supabase = get_supabase()
     try:
-        header = jwt.get_unverified_header(token)
-        alg = header.get("alg", "HS256")
-        payload = jwt.decode(
-            token,
-            secret,
-            algorithms=[alg],
-            options={"verify_aud": False},
-        )
-        return {"id": payload["sub"], "email": payload.get("email")}
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
+        result = supabase.auth.get_user(credentials.credentials)
+        if not result or not result.user:
+            raise HTTPException(status_code=401, detail="User not found")
+        return {"id": result.user.id, "email": result.user.email}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Auth error: {e}")
