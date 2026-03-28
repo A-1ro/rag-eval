@@ -21,7 +21,7 @@ async def stats(
         .select("id")
         .eq("id", key_id)
         .eq("user_id", user["id"])
-        .maybe_single()
+        .limit(1)
         .execute()
     )
     if not key_check.data:

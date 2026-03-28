@@ -19,7 +19,7 @@ async def feedback(
         .select("id, api_keys!inner(user_id)")
         .eq("id", str(body.evaluation_id))
         .eq("api_keys.user_id", user["id"])
-        .maybe_single()
+        .limit(1)
         .execute()
     )
     if not eval_check.data:

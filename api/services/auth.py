@@ -33,13 +33,13 @@ async def verify_api_key(x_api_key: str = Header(...)) -> dict:
         supabase.table("api_keys")
         .select("id, user_id, name")
         .eq("key_hash", key_hash)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
 
     if not result.data:
         raise HTTPException(status_code=401, detail="Invalid API key")
-    return result.data
+    return result.data[0]
 
 
 async def verify_supabase_jwt(

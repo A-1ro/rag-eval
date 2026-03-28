@@ -68,7 +68,7 @@ async def delete_key(key_id: str, user: dict = Depends(verify_supabase_jwt)):
         .select("id")
         .eq("id", key_id)
         .eq("user_id", user["id"])
-        .maybe_single()
+        .limit(1)
         .execute()
     )
     if not existing.data:
