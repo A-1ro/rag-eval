@@ -1,9 +1,9 @@
 from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import track, feedback, stats, keys
-
-load_dotenv()
 app = FastAPI(
     title="rag-eval API",
     description="RAG評価ダッシュボード — Collector API",
