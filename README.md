@@ -130,7 +130,7 @@ curl -X POST https://your-api.vercel.app/api/keys \
 ### セルフホスト版
 
 ```bash
-git clone https://github.com/yourname/rag-eval
+git clone https://github.com/A-1ro/rag-eval
 cd rag-eval
 
 # 環境変数を設定

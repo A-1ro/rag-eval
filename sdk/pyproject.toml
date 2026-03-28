@@ -23,9 +23,9 @@ classifiers = [
 dependencies = ["httpx>=0.24.0"]
 
 [project.urls]
-Homepage = "https://github.com/yourname/rag-eval"
-Documentation = "https://github.com/yourname/rag-eval#readme"
-Issues = "https://github.com/yourname/rag-eval/issues"
+Homepage = "https://github.com/A-1ro/rag-eval"
+Documentation = "https://github.com/A-1ro/rag-eval#readme"
+Issues = "https://github.com/A-1ro/rag-eval/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["rag_eval"]
