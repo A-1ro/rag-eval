@@ -68,13 +68,13 @@ function DetailContent({ id }: { id: string }) {
             <p style={{ lineHeight: 1.7 }}>{evaluation.answer}</p>
           </div>
 
-          {evaluation.chunks.length > 0 && (
+          {(evaluation.chunks ?? []).length > 0 && (
             <div className="card">
               <h2 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 12 }}>
-                参照チャンク（{evaluation.chunks.length}件）
+                参照チャンク（{(evaluation.chunks ?? []).length}件）
               </h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {evaluation.chunks.map((c, i) => (
+                {(evaluation.chunks ?? []).map((c, i) => (
                   <div key={i} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: 12 }}>
                     {c.source && <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>{c.source}</p>}
                     <p style={{ fontSize: 13, lineHeight: 1.6 }}>{c.content}</p>

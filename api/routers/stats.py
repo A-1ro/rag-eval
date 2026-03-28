@@ -73,7 +73,7 @@ async def stats(
     recent_result = (
         supabase.table("evaluations")
         .select(
-            "id, question, answer, latency_ms,"
+            "id, question, answer, chunks, latency_ms,"
             "auto_score_relevance, auto_score_faithfulness, auto_score_completeness,"
             "created_at"
         )

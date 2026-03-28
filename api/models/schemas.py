@@ -35,6 +35,7 @@ class EvaluationSummary(BaseModel):
     id: UUID
     question: str
     answer: str
+    chunks: Optional[List[Chunk]] = []
     latency_ms: Optional[int]
     auto_score_relevance: Optional[float]
     auto_score_faithfulness: Optional[float]
