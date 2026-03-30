@@ -1,3 +1,4 @@
+import asyncio
 import os
 import json
 import logging
@@ -35,6 +36,32 @@ JSONのみを返してください（他のテキスト不要）。
 """
 
 
+def _clamp(v: float) -> float:
+    return max(0.0, min(1.0, v))
+
+
+def _call_groq(question: str, answer: str, chunks_text: str) -> dict:
+    """同期的にGroq APIを呼び出して評価スコアを返す。"""
+    client = get_groq_client()
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "user",
+                "content": EVAL_PROMPT.format(
+                    question=question,
+                    answer=answer,
+                    chunks=chunks_text,
+                ),
+            }
+        ],
+        temperature=0.0,
+        max_tokens=100,
+    )
+    raw = response.choices[0].message.content.strip()
+    return json.loads(raw)
+
+
 async def run_evaluation(
     evaluation_id: str,
     question: str,
@@ -51,32 +78,15 @@ async def run_evaluation(
             f"- {c.get('content', '')}" for c in chunks
         ) or "(チャンクなし)"
 
-        client = get_groq_client()
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {
-                    "role": "user",
-                    "content": EVAL_PROMPT.format(
-                        question=question,
-                        answer=answer,
-                        chunks=chunks_text,
-                    ),
-                }
-            ],
-            temperature=0.0,
-            max_tokens=100,
-        )
-
-        raw = response.choices[0].message.content.strip()
-        scores = json.loads(raw)
+        # Groq SDKは同期クライアントのみのため、スレッドプールで実行してイベントループをブロックしない
+        scores = await asyncio.to_thread(_call_groq, question, answer, chunks_text)
 
         supabase = get_supabase()
         supabase.table("evaluations").update(
             {
-                "auto_score_relevance": float(scores.get("relevance", 0)),
-                "auto_score_faithfulness": float(scores.get("faithfulness", 0)),
-                "auto_score_completeness": float(scores.get("completeness", 0)),
+                "auto_score_relevance": _clamp(float(scores.get("relevance", 0))),
+                "auto_score_faithfulness": _clamp(float(scores.get("faithfulness", 0))),
+                "auto_score_completeness": _clamp(float(scores.get("completeness", 0))),
             }
         ).eq("id", evaluation_id).execute()
 

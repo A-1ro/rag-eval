@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Literal, Optional, List
 from uuid import UUID
 
 
@@ -22,7 +22,7 @@ class TrackResponse(BaseModel):
 
 class FeedbackRequest(BaseModel):
     evaluation_id: UUID
-    rating: int  # 1 or -1
+    rating: Literal[1, -1]  # 1=良い, -1=悪い
     comment: Optional[str] = None
 
 

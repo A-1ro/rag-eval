@@ -5,8 +5,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { FeedbackButton } from "@/components/FeedbackButton";
-import { EnvProvider, useEnv } from "@/components/EnvSelector";
-import { fetchStats } from "@/lib/api";
+import { EnvProvider } from "@/components/EnvSelector";
+import { fetchEvaluation } from "@/lib/api";
 import type { Evaluation } from "@/lib/types";
 
 function ScoreRow({ label, value }: { label: string; value: number | null }) {
@@ -30,22 +30,17 @@ function ScoreRow({ label, value }: { label: string; value: number | null }) {
 }
 
 function DetailContent({ id }: { id: string }) {
-  const { selectedKeyId } = useEnv();
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!selectedKeyId) return;
-    fetchStats(selectedKeyId, 0, 100)
-      .then((s) => {
-        const found = s.recent.find((e) => e.id === id);
-        if (!found) setError("評価が見つかりません");
-        else setEvaluation(found);
-      })
+    setLoading(true);
+    fetchEvaluation(id)
+      .then(setEvaluation)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [selectedKeyId, id]);
+  }, [id]);
 
   return (
     <main className="container" style={{ paddingTop: 32, paddingBottom: 48 }}>

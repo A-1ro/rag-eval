@@ -47,7 +47,7 @@ async def verify_supabase_jwt(
 ) -> dict:
     """
     ダッシュボード向け: Authorization: Bearer <supabase_jwt> を
-    PyJWT で直接検証しユーザー情報を返す。
+    Supabase の /auth/v1/user エンドポイントで検証しユーザー情報を返す。
     """
     supabase_url = os.environ.get("SUPABASE_URL", "").strip()
     supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
