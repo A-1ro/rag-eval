@@ -29,7 +29,12 @@ track(
 ```python
 from rag_eval import atrack
 
-await atrack(question=question, answer=answer, chunks=chunks)
+await atrack(
+    question=question,
+    answer=answer,
+    chunks=chunks,
+    api_key="rag_eval_xxxx",  # または環境変数 RAG_EVAL_API_KEY
+)
 ```
 
 ### セルフホスト版
