@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 
 export default function LoginPage() {
@@ -201,6 +202,14 @@ export default function LoginPage() {
               </button>
             </>
           )}
+        </p>
+
+        <p style={{ marginTop: 16, fontSize: 12, textAlign: "center", color: "var(--text-muted)" }}>
+          アカウント作成により{" "}
+          <Link href="/privacy" style={{ color: "var(--text-muted)", textDecoration: "underline" }}>
+            プライバシーポリシー
+          </Link>
+          {" "}に同意したものとみなします。
         </p>
       </div>
     </div>
