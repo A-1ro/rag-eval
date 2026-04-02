@@ -24,7 +24,7 @@ export function Nav() {
       }}
     >
       <div
-        className="container"
+        className="container nav-inner"
         style={{
           display: "flex",
           alignItems: "center",
@@ -38,17 +38,20 @@ export function Nav() {
         >
           RAG Eval
         </Link>
-        <Link href="/" style={{ fontSize: 14, color: "var(--text-muted)" }}>
-          Overview
-        </Link>
-        <Link href="/evaluations" style={{ fontSize: 14, color: "var(--text-muted)" }}>
-          Evaluations
-        </Link>
-        <Link href="/settings" style={{ fontSize: 14, color: "var(--text-muted)" }}>
-          Settings
-        </Link>
 
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16 }}>
+        <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 24 }}>
+          <Link href="/" style={{ fontSize: 14, color: "var(--text-muted)" }}>
+            Overview
+          </Link>
+          <Link href="/evaluations" style={{ fontSize: 14, color: "var(--text-muted)" }}>
+            Evaluations
+          </Link>
+          <Link href="/settings" style={{ fontSize: 14, color: "var(--text-muted)" }}>
+            Settings
+          </Link>
+        </div>
+
+        <div className="nav-right" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16 }}>
           <EnvSelector />
           <button className="btn-ghost" onClick={handleLogout} style={{ fontSize: 13 }}>
             ログアウト

@@ -69,3 +69,34 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--text); }
 .btn-danger  { background: var(--red); color: #fff; }
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .nav-inner {
+    flex-wrap: wrap;
+    height: auto !important;
+    padding: 10px 0;
+    gap: 8px;
+  }
+
+  .nav-links {
+    order: 3;
+    width: 100%;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .nav-right {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
