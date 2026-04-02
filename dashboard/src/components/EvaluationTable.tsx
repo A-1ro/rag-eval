@@ -32,7 +32,7 @@ export function EvaluationTable({ evaluations }: Props) {
   }
 
   return (
-    <div className="card table-scroll" style={{ padding: 0, overflow: "hidden" }}>
+    <div className="card" style={{ padding: 0, overflowX: "auto" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
         <thead>
           <tr style={{ background: "var(--bg)" }}>
