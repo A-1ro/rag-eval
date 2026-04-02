@@ -1,0 +1,52 @@
+{
+  "name": "rageval-sdk",
+  "version": "0.1.0",
+  "description": "RAG evaluation SDK — RAGの回答品質を3行で計測",
+  "keywords": [
+    "rag",
+    "llm",
+    "evaluation",
+    "observability"
+  ],
+  "license": "MIT",
+  "author": "A-1ro",
+  "homepage": "https://github.com/A-1ro/rag-eval#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/A-1ro/rag-eval.git",
+    "directory": "sdk-npm"
+  },
+  "bugs": {
+    "url": "https://github.com/A-1ro/rag-eval/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  }
+}
