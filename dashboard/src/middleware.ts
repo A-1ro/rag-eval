@@ -31,8 +31,10 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // 未ログインで /login 以外にアクセスしたらリダイレクト
-  if (!user && pathname !== "/login") {
+  const publicPaths = ["/login", "/privacy"];
+
+  // 未ログインでパブリックページ以外にアクセスしたらリダイレクト
+  if (!user && !publicPaths.includes(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
