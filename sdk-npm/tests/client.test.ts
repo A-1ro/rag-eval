@@ -56,7 +56,7 @@ describe("track()", () => {
       apiKey: FAKE_KEY,
     });
     expect(fetch).toHaveBeenCalledWith(
-      "https://rag-eval-api.vercel.app/api/track",
+      "https://rag-eval.a-1ro.dev/api/track",
       expect.objectContaining({ method: "POST" })
     );
   });

@@ -3,7 +3,7 @@ from typing import Optional
 
 import httpx
 
-DEFAULT_API_URL = "https://rag-eval-api.vercel.app"
+DEFAULT_API_URL = "https://rag-eval.a-1ro.dev"
 
 
 def track(

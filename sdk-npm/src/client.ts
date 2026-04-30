@@ -1,6 +1,6 @@
 import type { TrackOptions, TrackPayload } from "./types.js";
 
-const DEFAULT_API_URL = "https://rag-eval-api.vercel.app";
+const DEFAULT_API_URL = "https://rag-eval.a-1ro.dev";
 
 function resolveConfig(options: TrackOptions): {
   url: string;

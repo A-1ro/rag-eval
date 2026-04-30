@@ -1,0 +1,1 @@
+JWT_SECRET=any_random_string_at_least_32_chars_long_change_me_change_me
