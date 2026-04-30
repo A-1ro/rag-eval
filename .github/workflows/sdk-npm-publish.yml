@@ -3,14 +3,14 @@ name: SDK Publish to npm
 on:
   push:
     tags:
-      - "sdk-npm/v*"   # 例: sdk-npm/v0.1.1 をプッシュしたときに発火
+      - "sdk-npm/v*"   # 例: sdk-npm/v0.2.0 をプッシュしたときに発火
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write   # npm provenance (公開ビルド由来の検証可能な署名) 用
+      id-token: write   # npm Trusted Publishing + provenance 用 (OIDC)
 
     defaults:
       run:
@@ -38,7 +38,7 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Trusted Publisher を npmjs.com で事前設定済みなので NODE_AUTH_TOKEN 不要。
+      # OIDC トークンを使って短命の発行トークンを自動取得する。
       - name: Publish to npm
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
