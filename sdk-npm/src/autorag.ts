@@ -15,16 +15,44 @@ interface AutoRagAiSearchInput {
   [key: string]: unknown;
 }
 
+interface LegacyDataItem {
+  filename?: string;
+  content?: Array<{ type?: string; text?: string }>;
+}
+
+interface NewChunkItem {
+  text?: string;
+  item?: { key?: string };
+  filename?: string;
+}
+
 interface AutoRagAiSearchResult {
+  // レガシー(env.AI.autorag().aiSearch()): { response, data: [{filename, content:[{text}]}] }
   response?: string;
-  data?: Array<{
-    filename?: string;
-    content?: Array<{ type?: string; text?: string }>;
-  }>;
+  data?: LegacyDataItem[];
+  // 新形式(AI Search binding): { chunks: [{text, item:{key}}] } or chatCompletions系
+  chunks?: NewChunkItem[];
+  choices?: Array<{ message?: { content?: string } }>;
   [key: string]: unknown;
 }
 
+function extractAnswer(result: AutoRagAiSearchResult): string {
+  return (
+    result.response ??
+    result.choices?.[0]?.message?.content ??
+    ""
+  );
+}
+
 function toChunks(result: AutoRagAiSearchResult): Chunk[] {
+  // 新形式: { chunks: [{ text, item: { key } }] }
+  if (Array.isArray(result.chunks)) {
+    return result.chunks.map((c) => ({
+      content: c.text ?? "",
+      source: c.item?.key ?? c.filename,
+    }));
+  }
+  // レガシー: { data: [{ filename, content: [{ text }] }] }
   return (result.data ?? []).map((d) => ({
     content: (d.content ?? [])
       .map((c) => c.text ?? "")
@@ -67,7 +95,7 @@ export function trackAutoRAG<T extends object>(
 
           const promise = track({
             question: input.query,
-            answer: result?.response ?? "",
+            answer: extractAnswer(result ?? {}),
             chunks: toChunks(result ?? {}),
             latencyMs,
             apiKey: options.apiKey,

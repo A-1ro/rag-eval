@@ -140,6 +140,44 @@ describe("trackAutoRAG()", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("新形式レスポンス(chunks[].text / chunks[].item.key)も正しく送信する", async () => {
+    const stub = {
+      aiSearch: vi.fn().mockResolvedValue({
+        response: "新形式の回答",
+        chunks: [
+          { text: "chunk-1", item: { key: "doc1.md" }, score: 0.9 },
+          { text: "chunk-2", item: { key: "doc2.md" }, score: 0.8 },
+        ],
+      }),
+    };
+    const wrapped = trackAutoRAG(stub, { apiKey: FAKE_KEY });
+    await wrapped.aiSearch({ query: "Q" });
+    await new Promise((r) => setTimeout(r, 0));
+
+    const body = JSON.parse(vi.mocked(fetch).mock.calls[0][1]?.body as string);
+    expect(body.answer).toBe("新形式の回答");
+    expect(body.chunks).toEqual([
+      { content: "chunk-1", source: "doc1.md" },
+      { content: "chunk-2", source: "doc2.md" },
+    ]);
+  });
+
+  it("chatCompletions形式(choices[0].message.content)の回答も拾える", async () => {
+    const stub = {
+      aiSearch: vi.fn().mockResolvedValue({
+        choices: [{ message: { content: "chat-completionsからの回答" } }],
+        chunks: [{ text: "ctx-1", item: { key: "src.md" } }],
+      }),
+    };
+    const wrapped = trackAutoRAG(stub, { apiKey: FAKE_KEY });
+    await wrapped.aiSearch({ query: "Q" });
+    await new Promise((r) => setTimeout(r, 0));
+
+    const body = JSON.parse(vi.mocked(fetch).mock.calls[0][1]?.body as string);
+    expect(body.answer).toBe("chat-completionsからの回答");
+    expect(body.chunks).toEqual([{ content: "ctx-1", source: "src.md" }]);
+  });
+
   it("カスタム apiUrl を使う", async () => {
     const stub = makeAutoRagStub();
     const wrapped = trackAutoRAG(stub, {
