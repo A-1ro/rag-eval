@@ -1,6 +1,6 @@
 {
   "name": "rageval-sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "RAG evaluation SDK — RAGの回答品質を3行で計測",
   "keywords": [
     "rag",
