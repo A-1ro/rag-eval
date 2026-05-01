@@ -95,12 +95,40 @@ describe("trackAutoRAG()", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("track送信が失敗してもaiSearchは正常に値を返す", async () => {
+  it("track送信が失敗してもaiSearchは正常に値を返す（エラーはログに残す）", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const stub = makeAutoRagStub();
     const wrapped = trackAutoRAG(stub, { apiKey: FAKE_KEY });
     const result = await wrapped.aiSearch({ query: "Q" });
     expect(result.response).toBe("RAGとは...");
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[rag-eval]"),
+      expect.any(Error),
+    );
+  });
+
+  it("track送信がHTTPエラーを返した場合もエラーログを残す", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        text: () => Promise.resolve("boom"),
+      }),
+    );
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const stub = makeAutoRagStub();
+    const wrapped = trackAutoRAG(stub, { apiKey: FAKE_KEY });
+    await wrapped.aiSearch({ query: "Q" });
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/\[rag-eval\].*500.*Internal Server Error.*boom/),
+    );
   });
 
   it("APIキー未指定でもaiSearchは動く（trackは送信されない）", async () => {

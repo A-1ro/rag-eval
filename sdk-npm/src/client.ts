@@ -39,7 +39,8 @@ export function track(options: TrackOptions): Promise<string | null> {
 
   if (!key) return Promise.resolve(null);
 
-  return fetch(`${url}/api/track`, {
+  const endpoint = `${url}/api/track`;
+  return fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -48,12 +49,21 @@ export function track(options: TrackOptions): Promise<string | null> {
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(5000),
   })
-    .then((res) => {
-      if (!res.ok) return null;
+    .then(async (res) => {
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        console.error(
+          `[rag-eval] POST ${endpoint} failed: ${res.status} ${res.statusText}${body ? ` - ${body}` : ""}`,
+        );
+        return null;
+      }
       return res.json() as Promise<{ id?: string }>;
     })
     .then((data) => data?.id ?? null)
-    .catch(() => null);
+    .catch((err) => {
+      console.error(`[rag-eval] POST ${endpoint} error:`, err);
+      return null;
+    });
 }
 
 /**

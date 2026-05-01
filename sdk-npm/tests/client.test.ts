@@ -130,16 +130,33 @@ describe("track()", () => {
     expect(headers["X-API-Key"]).toBe(FAKE_KEY);
   });
 
-  it("APIが4xxを返した場合はnullを返す（例外なし）", async () => {
-    vi.stubGlobal("fetch", mockFetch(401, { error: "Unauthorized" }));
+  it("APIが4xxを返した場合はnullを返す（例外なし、エラーログを残す）", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: "Unauthorized",
+        text: () => Promise.resolve('{"error":"Unauthorized"}'),
+      }),
+    );
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const result = await track({ question: "Q", answer: "A", apiKey: FAKE_KEY });
     expect(result).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/\[rag-eval\].*401.*Unauthorized/),
+    );
   });
 
-  it("ネットワークエラーが発生した場合はnullを返す（例外なし）", async () => {
+  it("ネットワークエラーが発生した場合はnullを返す（例外なし、エラーログを残す）", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network error")));
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const result = await track({ question: "Q", answer: "A", apiKey: FAKE_KEY });
     expect(result).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[rag-eval]"),
+      expect.any(Error),
+    );
   });
 
   it("レスポンスに id がない場合はnullを返す", async () => {
@@ -175,6 +192,7 @@ describe("atrack()", () => {
 
   it("失敗時に例外を投げない", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("fail")));
+    vi.spyOn(console, "error").mockImplementation(() => {});
     await expect(atrack({ question: "Q", answer: "A", apiKey: FAKE_KEY })).resolves.toBeNull();
   });
 });
